@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NYC Airbnb — Room Type Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Station header -->
+  <header class="station-sign">
+    <div class="stripe"></div>
+    <div class="station-sign__inner">
+      <span class="route-bullet" aria-hidden="true">R</span>
+      <div class="station-sign__text">
+        <h1>NYC Airbnb Line</h1>
+        <p>Room&nbsp;Type Predictor — Next Arrival: Instant</p>
+      </div>
+    </div>
+    <div class="stripe stripe--train">
+      <svg class="train-icon" viewBox="0 0 48 24" aria-hidden="true">
+        <rect x="2" y="4" width="36" height="16" rx="4" fill="currentColor"/>
+        <rect x="7" y="8" width="8" height="6" rx="1" fill="#0a0e15"/>
+        <rect x="18" y="8" width="8" height="6" rx="1" fill="#0a0e15"/>
+        <rect x="29" y="8" width="6" height="6" rx="1" fill="#0a0e15"/>
+        <circle cx="11" cy="21" r="2.2" fill="currentColor"/>
+        <circle cx="29" cy="21" r="2.2" fill="currentColor"/>
+      </svg>
+    </div>
+  </header>
+
+  <main class="platform">
+
+    <!-- Ticket-style form card -->
+    <section class="ticket" aria-labelledby="form-title">
+      <div class="ticket__notch ticket__notch--left"></div>
+      <div class="ticket__notch ticket__notch--right"></div>
+
+      <div class="ticket__header">
+        <h2 id="form-title">Fare Details</h2>
+        <span class="ticket__id">METRO-CARD // #AB-2026</span>
+      </div>
+
+      <form id="predict-form" novalidate>
+
+        <fieldset class="field-group">
+          <legend>Location</legend>
+
+          <div class="field">
+            <label for="latitude">Latitude</label>
+            <input type="number" step="any" id="latitude" name="latitude" min="-90" max="90" placeholder="e.g. 40.7128" required />
+            <span class="field__hint">-90 to 90</span>
+            <span class="field__error" id="err-latitude"></span>
+          </div>
+
+          <div class="field">
+            <label for="longitude">Longitude</label>
+            <input type="number" step="any" id="longitude" name="longitude" min="-180" max="180" placeholder="e.g. -74.0060" required />
+            <span class="field__hint">-180 to 180</span>
+            <span class="field__error" id="err-longitude"></span>
+          </div>
+
+          <div class="field">
+            <label for="neighbourhood_group">Borough</label>
+            <select id="neighbourhood_group" name="neighbourhood_group" required>
+              <option value="" disabled selected>Select a borough</option>
+              <option value="Manhattan">Manhattan</option>
+              <option value="Brooklyn">Brooklyn</option>
+              <option value="Queens">Queens</option>
+              <option value="Bronx">Bronx</option>
+              <option value="Staten Island">Staten Island</option>
+            </select>
+            <span class="field__error" id="err-neighbourhood_group"></span>
+          </div>
+
+          <div class="field">
+            <label for="neighbourhood">Neighbourhood</label>
+            <input type="text" id="neighbourhood" name="neighbourhood" placeholder="e.g. Williamsburg" required />
+            <span class="field__error" id="err-neighbourhood"></span>
+          </div>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Listing</legend>
+
+          <div class="field">
+            <label for="price">Price per night ($)</label>
+            <input type="number" step="0.01" id="price" name="price" min="0.01" placeholder="e.g. 150" required />
+            <span class="field__error" id="err-price"></span>
+          </div>
+
+          <div class="field">
+            <label for="minimum_nights">Minimum nights</label>
+            <input type="number" step="1" id="minimum_nights" name="minimum_nights" min="1" max="365" placeholder="e.g. 3" required />
+            <span class="field__error" id="err-minimum_nights"></span>
+          </div>
+
+          <div class="field">
+            <label for="availability_365">Availability (days/yr)</label>
+            <input type="number" step="1" id="availability_365" name="availability_365" min="0" max="365" placeholder="e.g. 200" required />
+            <span class="field__error" id="err-availability_365"></span>
+          </div>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Host &amp; Reviews</legend>
+
+          <div class="field">
+            <label for="number_of_reviews">Number of reviews</label>
+            <input type="number" step="1" id="number_of_reviews" name="number_of_reviews" min="0" placeholder="e.g. 24" required />
+            <span class="field__error" id="err-number_of_reviews"></span>
+          </div>
+
+          <div class="field">
+            <label for="reviews_per_month">Reviews per month</label>
+            <input type="number" step="0.01" id="reviews_per_month" name="reviews_per_month" min="0" placeholder="e.g. 1.2" required />
+            <span class="field__error" id="err-reviews_per_month"></span>
+          </div>
+
+          <div class="field">
+            <label for="calculated_host_listings_count">Host's total listings</label>
+            <input type="number" step="1" id="calculated_host_listings_count" name="calculated_host_listings_count" min="0" placeholder="e.g. 2" required />
+            <span class="field__error" id="err-calculated_host_listings_count"></span>
+          </div>
+        </fieldset>
+
+        <div class="api-error" id="api-error" role="alert" hidden></div>
+
+        <button type="submit" class="swipe-btn" id="submit-btn">
+          <span class="swipe-btn__track" aria-hidden="true">
+            <span class="swipe-btn__card"></span>
+          </span>
+          <span class="swipe-btn__label">Swipe to Predict</span>
+          <span class="swipe-btn__spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </section>
+
+    <!-- Result / departure board -->
+    <section class="board" id="result-board" aria-live="polite">
+      <div class="board__header">
+        <span class="board__dot"></span>
+        <h2>Departure Board</h2>
+      </div>
+      <div class="board__body" id="board-body">
+        <p class="board__placeholder">Enter fare details and swipe to see the predicted room type.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="track">
+    <p>Powered by your FastAPI model &middot; <code>POST /predict</code> &middot; <span id="year"></span></p>
+  </footer>
+
+<script src="script.js"></script>
+</body>
+</html>
